@@ -4,8 +4,11 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -20,6 +23,7 @@ public class Prog202Activity extends AppCompatActivity {
 
     static SQLiteDatabase mydb;
     Integer[] data;
+    private AsyncHttp asynchttp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,6 +31,8 @@ public class Prog202Activity extends AppCompatActivity {
         setContentView(R.layout.activity_prog202);
 
         Button button = (Button)this.findViewById(R.id.button);
+        Button button3 = (Button)findViewById(R.id.button3);
+        Button button4 = (Button)findViewById(R.id.button4);
         view();
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
@@ -34,6 +40,51 @@ public class Prog202Activity extends AppCompatActivity {
                 view();
             }
         });
+
+        button3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                upload();
+                view();
+            }
+        });
+
+        button4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Prog202Activity.this, NetworkCheckActivity.class);
+                startActivity(intent);
+            }
+        });
+    }
+
+    public void upload(){
+        asynchttp = new AsyncHttp(android.provider.Settings.Secure.getString(getContentResolver(), android.provider.Settings.Secure.ANDROID_ID));
+        DatabaseHelper hlpr = new DatabaseHelper(getApplicationContext());
+        mydb = hlpr.getWritableDatabase();
+        Cursor cr = mydb.rawQuery("Select * From bbs", null);
+        cr.moveToFirst();
+
+        ConnectivityManager cm;
+        cm = (ConnectivityManager)getSystemService(CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+        final Toast toast_s = Toast.makeText(this,"登録成功",Toast.LENGTH_LONG);
+        final Toast toast_f = Toast.makeText(this, "登録失敗:No Network Connection!", Toast.LENGTH_LONG);
+
+        if (networkInfo != null) {
+            if(networkInfo.isConnected()){
+                if(cr.getCount()>0){
+                    for(int cnt = 0; cnt < cr.getCount(); cnt++) {
+                        asynchttp = new AsyncHttp(android.provider.Settings.Secure.getString(getContentResolver(), android.provider.Settings.Secure.ANDROID_ID));
+                        asynchttp.execute(cr.getString(0), cr.getString(1), cr.getString(2));
+                        delete1(cr.getInt(0));
+                        Log.d("DeleteNumber", String.valueOf(cr.getInt(0)));
+                        cr.moveToNext();
+                    }
+                }
+                toast_s.show();
+            }else toast_f.show();
+        }else toast_f.show();
     }
 
     private void add(){
@@ -111,5 +162,16 @@ public class Prog202Activity extends AppCompatActivity {
         else toast_f.show();
     }
 
-
+    private void delete1(int id){
+        DatabaseHelper dbHelper = new DatabaseHelper(this);
+        SQLiteDatabase db =  dbHelper.getWritableDatabase();
+        int ret;
+        try{
+            ret = db.delete("bbs","id ="+ id, null);
+        }finally{
+            db.close();
+        }
+        if(ret == 1) Log.d("Delete", "OK");
+        else Log.d("Delete", "NG");
+    }
 }

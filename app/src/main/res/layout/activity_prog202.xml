@@ -27,4 +27,32 @@
         android:id="@+id/listView"
         android:layout_below="@+id/button"
         android:layout_centerHorizontal="true" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/listView"
+        android:layout_centerHorizontal="true">
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DB登録"
+            android:id="@+id/button3"
+            android:layout_below="@+id/listView"
+            android:layout_centerHorizontal="true"
+            android:width="0.5dp"
+            android:layout_weight="0.5" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Network Check"
+            android:id="@+id/button4"
+            android:width="0.5dp"
+            android:layout_weight="0.5" />
+
+    </LinearLayout>
+
 </RelativeLayout>
